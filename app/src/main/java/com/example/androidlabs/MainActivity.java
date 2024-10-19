@@ -1,72 +1,80 @@
 package com.example.androidlabs;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.google.android.material.snackbar.Snackbar;
-
 public class MainActivity extends AppCompatActivity {
 
-    private TextView textView;    // Declare a TextView
-    private EditText editText;    // Declare an EditText
+    private EditText nameEditText;
+    private SharedPreferences sharedPreferences;
+
+    // Define the ActivityResultLauncher for starting NameActivity and receiving results
+    private final ActivityResultLauncher<Intent> nameActivityResultLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    // User is happy, finish the app
+                    finish(); // Close the app
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main_linear); // Set your layout file here
+        setContentView(R.layout.activity_main);
 
-        // Initialize the views using their IDs defined in XML
-        textView = findViewById(R.id.textView);    // Ensure this ID matches your XML
-        editText = findViewById(R.id.editText);    // Ensure this ID matches your XML
-        // Declare a Button
-        Button button = findViewById(R.id.button);        // Ensure this ID matches your XML
-        // Declare a CheckBox
-        CheckBox checkBox = findViewById(R.id.checkBox);    // Ensure this ID matches your XML
-
-        // Set an OnClickListener on the button
-        button.setOnClickListener(v -> {
-            // Get the text from the EditText
-            String newText = editText.getText().toString();
-
-            // Set the text to the TextView
-            textView.setText(newText);
-
-            // Show a Toast message
-            Toast.makeText(MainActivity.this, getResources().getString(R.string.toast_message), Toast.LENGTH_SHORT).show();
-        });
-
-        // Add a check change listener to the CheckBox
-        checkBox.setOnCheckedChangeListener((cb, isChecked) -> {
-            // Display a Snack bar showing the state of the checkbox
-            String message = "The checkbox is now " + (isChecked ? "on" : "off");
-
-            Snackbar snackbar = Snackbar.make(cb, message, Snackbar.LENGTH_LONG);
-
-            // Add an "Undo" action to revert the checkbox state
-            snackbar.setAction("Undo", v -> {
-                // Revert the checkbox to its previous state
-                cb.setChecked(!isChecked);
-            });
-
-            snackbar.show();
-        });
-
-        // Handling Window Insets
+        // Apply system bar insets padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        // Find views
+        nameEditText = findViewById(R.id.MainEditText);
+        Button nextButton = findViewById(R.id.MainButton);
+
+        // Initialize SharedPreferences
+        sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
+
+        // Load the saved name from SharedPreferences
+        String savedName = sharedPreferences.getString("name", "");
+        if (!savedName.isEmpty()) {
+            nameEditText.setText(savedName);
+        }
+
+        // Set OnClickListener for the Next button
+        nextButton.setOnClickListener(v -> {
+            // Get the name from EditText
+            String name = nameEditText.getText().toString();
+
+            // Create an Intent to launch NameActivity
+            Intent intent = new Intent(MainActivity.this, NameActivity.class);
+            intent.putExtra("name", name);
+
+            // Launch the NameActivity using the ActivityResultLauncher
+            nameActivityResultLauncher.launch(intent);
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Save the current value of the EditText to SharedPreferences
+        String nameToSave = nameEditText.getText().toString();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("name", nameToSave);
+        editor.apply();
     }
 }
