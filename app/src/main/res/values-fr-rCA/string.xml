@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">AndroidLabs</string>
     <string name="hello_world">Bonjour le monde</string>
     <string name="button_text">Je suis un bouton!</string>
+    <string name="button_text1">Appuyez ici</string>
+    <string name="checkbox_text">Vérifiez ceci !</string>
+    <string name="switch_text">Activer Désactiver</string>
+    <string name="edit_text_hint">Jadore Android !</string>
+    <string name="text_view_text">Jadore Android</string>
+    <string name="flag_description">Drapeau américain</string>
+    <string name="toast_message">Létiquette a été mise à jour</string>
 </resources>
