@@ -1,11 +1,8 @@
 <resources>
-    <string name="Textview">Enter your name</string>
     <string name="app_name">AndroidLabs</string>
-    <string name="NameTextview">Welcome!</string>
-    <string name="EditTextHint">Enter your name here</string>
-    <string name="ButtonText">NEXT</string>
-    <string name="contentDescription">Input field for entering your name</string>
-    <string name="NameButtonText1">Don\'t call me that</string>
-    <string name="NameButtonText2">Thank You</string>
-    <string name="welcome_message">Welcome %1$s!</string>
+    <string name="EditTextHint">Type Here</string>
+    <string name="SwitchText">Urgent</string>
+    <string name="ButtonText">Add</string>
+    <string name="ToDoText">Sample To-Do Item</string>
+
 </resources>
