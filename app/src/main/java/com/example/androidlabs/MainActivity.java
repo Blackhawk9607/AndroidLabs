@@ -1,80 +1,86 @@
 package com.example.androidlabs;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
-    private EditText nameEditText;
-    private SharedPreferences sharedPreferences;
-
-    // Define the ActivityResultLauncher for starting NameActivity and receiving results
-    private final ActivityResultLauncher<Intent> nameActivityResultLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    // User is happy, finish the app
-                    finish(); // Close the app
-                }
-            });
+    private ArrayList<TodoItem> todoItems; // List to hold todo items
+    private EditText editTextItem; // EditText for user input
+    private TodoAdapter adapter; // Adapter for the ListView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Apply system bar insets padding
+        // Set up window insets for proper padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Find views
-        nameEditText = findViewById(R.id.MainEditText);
-        Button nextButton = findViewById(R.id.MainButton);
+        // Initialize the todo items list
+        todoItems = new ArrayList<>();
 
-        // Initialize SharedPreferences
-        sharedPreferences = getSharedPreferences("MyAppPreferences", Context.MODE_PRIVATE);
+        // Initialize the ListView and set the adapter
+        ListView listView = findViewById(R.id.listView);
+        editTextItem = findViewById(R.id.EditText); // Reference to the EditText
+        Button addButton = findViewById(R.id.AddButton); // Reference to the Add button
 
-        // Load the saved name from SharedPreferences
-        String savedName = sharedPreferences.getString("name", "");
-        if (!savedName.isEmpty()) {
-            nameEditText.setText(savedName);
-        }
+        // Create the adapter for the ListView
+        adapter = new TodoAdapter(this, todoItems);
+        listView.setAdapter(adapter);
 
-        // Set OnClickListener for the Next button
-        nextButton.setOnClickListener(v -> {
-            // Get the name from EditText
-            String name = nameEditText.getText().toString();
+        // Set up the button click listener to add a new to-do item
+        addButton.setOnClickListener(v -> {
+            addTodoItem(); // Call the method to add a new to-do item
+        });
 
-            // Create an Intent to launch NameActivity
-            Intent intent = new Intent(MainActivity.this, NameActivity.class);
-            intent.putExtra("name", name);
+        // Set up long click listener on the ListView for item deletion
+        listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            // Build and show an AlertDialog
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Do you want to delete this?")
+                    .setMessage("The selected row is: " + position)
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        // Remove the item from the list
+                        todoItems.remove(position);
+                        // Notify the adapter about the data change
+                        adapter.notifyDataSetChanged();
+                    })
+                    .setNegativeButton("No", null) // Just dismiss the dialog if "No" is clicked
+                    .show();
 
-            // Launch the NameActivity using the ActivityResultLauncher
-            nameActivityResultLauncher.launch(intent);
+            // Return true to indicate the long-click was handled
+            return true;
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
+    // Method to add a new to-do item
+    private void addTodoItem() {
+        String itemText = editTextItem.getText().toString(); // Get text from EditText
+        boolean isUrgent = ((SwitchCompat) findViewById(R.id.UrgentSwitch)).isChecked(); // Get urgency status from Switch
 
-        // Save the current value of the EditText to SharedPreferences
-        String nameToSave = nameEditText.getText().toString();
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("name", nameToSave);
-        editor.apply();
+        // Check if the input is not empty
+        if (!itemText.isEmpty()) {
+            TodoItem newItem = new TodoItem(itemText, isUrgent); // Create a new TodoItem
+            todoItems.add(newItem); // Add to the list
+            adapter.notifyDataSetChanged(); // Notify adapter of the data change
+            editTextItem.setText(""); // Clear the EditText
+            ((SwitchCompat) findViewById(R.id.UrgentSwitch)).setChecked(false); // Reset the Switch to unchecked
+        }
     }
 }

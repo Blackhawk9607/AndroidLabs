@@ -1,59 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    tools:ignore="VisualLintBounds">
 
-    <!-- TextView for "Enter your name" -->
-    <TextView
-        android:id="@+id/MainTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/Textview"
-        android:textSize="18sp"
-        android:textColor="#000000"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="40dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- EditText for name input -->
-    <EditText
-        android:id="@+id/MainEditText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="@string/EditTextHint"
-        android:inputType="textPersonName"
-        android:textColorHint="#6B6B6B"
-        app:layout_constraintTop_toBottomOf="@id/MainTextView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
-        android:minHeight="48dp"
-        android:minWidth="48dp"
-        android:autofillHints="name"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
+        <!-- ListView that will display To-Do items -->
 
+        <!-- Horizontal Layout for the EditText, Switch, and Button -->
+        <ListView
+            android:id="@+id/listView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <!-- Button for Next -->
-    <Button
-        android:id="@+id/MainButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ButtonText"
-        android:textAllCaps="true"
-        android:backgroundTint="#8000FF"
-        android:textColor="#FFFFFF"
-        app:layout_constraintTop_toBottomOf="@id/MainEditText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- EditText for user input -->
+            <EditText
+                android:id="@+id/EditText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:autofillHints=""
+                android:minHeight="48dp"
+                android:minWidth="48dp"
+                android:layout_weight="1"
+                android:hint="@string/EditTextHint"
+                android:inputType="text"
+                tools:ignore="VisualLintTextFieldSize" />
+
+            <!-- Switch for marking items as urgent -->
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/UrgentSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="@string/SwitchText" />
+
+            <!-- Button to add new item -->
+            <Button
+                android:id="@+id/AddButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ButtonText" />
+
+        </LinearLayout>
+    </LinearLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

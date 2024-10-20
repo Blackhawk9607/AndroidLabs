@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Textview">Entrez votre nom</string>
     <string name="app_name">AndroidLabs</string>
-    <string name="NameTextview">Bienvenue !</string>
-    <string name="EditTextHint">Entrez votre nom ici</string>
-    <string name="ButtonText">SUIVANT</string>
-    <string name="contentDescription">Champ de saisie pour entrer votre nom</string>
-    <string name="NameButtonText1">Ne m\'appelez pas ça</string>
-    <string name="NameButtonText2">Merci</string>
-    <string name="welcome_message">Bienvenue %1$s !</string>
+    <string name="EditTextHint">Tapez ici</string>
+    <string name="SwitchText">Urgent!</string>
+    <string name="ButtonText">Ajouter</string>
+    <string name="ToDoText">Exemple de tâche à faire</string>
 </resources>
