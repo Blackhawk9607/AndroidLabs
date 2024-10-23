@@ -16,53 +16,53 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ArrayList<TodoItem> todoItems; // List to hold todo items
-    private EditText editTextItem; // EditText for user input
-    private TodoAdapter adapter; // Adapter for the ListView
-    private TodoDatabaseHelper dbHelper; // Database helper for accessing SQLite
+    private ArrayList<TodoItem> todoItems; 
+    private EditText editTextItem; 
+    private TodoAdapter adapter; 
+    private TodoDatabaseHelper dbHelper; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set up window insets for proper padding
+        
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Initialize the todo items list
+        
         todoItems = new ArrayList<>();
 
-        // Initialize the database helper
+        
         dbHelper = new TodoDatabaseHelper(this);
 
-        // Load the saved todos from the database
+        
         loadTodosFromDatabase();
 
-        // Initialize the ListView and set the adapter
+        
         ListView listView = findViewById(R.id.listView);
         editTextItem = findViewById(R.id.EditText);
         Button addButton = findViewById(R.id.AddButton);
 
-        // Create the adapter for the ListView
+       
         adapter = new TodoAdapter(this, todoItems);
         listView.setAdapter(adapter);
 
-        // Set up the button click listener to add a new to-do item
+       
         addButton.setOnClickListener(v -> addTodoItem());
 
-        // Set up long click listener on the ListView for item deletion
+        
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("Do you want to delete this?")
                     .setMessage("The selected row is: " + position)
                     .setPositiveButton("Yes", (dialog, which) -> {
                         TodoItem todoItem = todoItems.get(position);
-                        dbHelper.deleteTodoItem(todoItem.getText()); // Remove from the database
-                        todoItems.remove(position); // Remove from the list
+                        dbHelper.deleteTodoItem(todoItem.getText()); 
+                        todoItems.remove(position); 
                         adapter.notifyDataSetChanged();
                     })
                     .setNegativeButton("No", null)
@@ -70,11 +70,11 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // Debugging: Print database information using printCursor()
+       
         printCursor(dbHelper.getAllTodos());
     }
 
-    // Method to load todos from the database
+   
     private void loadTodosFromDatabase() {
         Cursor cursor = dbHelper.getAllTodos();
         if (cursor.moveToFirst()) {
@@ -89,10 +89,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             } while (cursor.moveToNext());
         }
-        cursor.close(); // Always close the cursor after using it
+        cursor.close(); 
     }
 
-    // Method to add a new to-do item
+   
     private void addTodoItem() {
         String itemText = editTextItem.getText().toString();
         boolean isUrgent = ((SwitchCompat) findViewById(R.id.UrgentSwitch)).isChecked();
@@ -104,12 +104,12 @@ public class MainActivity extends AppCompatActivity {
             editTextItem.setText("");
             ((SwitchCompat) findViewById(R.id.UrgentSwitch)).setChecked(false);
 
-            // Add the new item to the database
+            
             dbHelper.insertTodoItem(newItem);
         }
     }
 
-    // Method to print cursor details for debugging
+    
     private void printCursor(Cursor cursor) {
         if (cursor != null) {
             Log.d("DB", "Database Version: " + dbHelper.getReadableDatabase().getVersion());
