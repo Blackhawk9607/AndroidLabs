@@ -13,9 +13,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- ListView that will display To-Do items -->
-
-        <!-- Horizontal Layout for the EditText, Switch, and Button -->
+      
         <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
@@ -28,7 +26,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <!-- EditText for user input -->
+    
             <EditText
                 android:id="@+id/EditText"
                 android:layout_width="0dp"
@@ -41,7 +39,7 @@
                 android:inputType="text"
                 tools:ignore="VisualLintTextFieldSize" />
 
-            <!-- Switch for marking items as urgent -->
+           
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/UrgentSwitch"
                 android:layout_width="wrap_content"
@@ -49,7 +47,7 @@
                 android:checked="false"
                 android:text="@string/SwitchText" />
 
-            <!-- Button to add new item -->
+           
             <Button
                 android:id="@+id/AddButton"
                 android:layout_width="wrap_content"
