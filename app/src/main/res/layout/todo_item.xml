@@ -5,12 +5,12 @@
     android:orientation="vertical"
     android:padding="10dp">
 
-    <!-- TextView to display the todo item text -->
+   
     <TextView
         android:id="@+id/todoItemText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/ToDoText"
-        android:textSize="20sp" /> <!-- Set text size to 20dp as required -->
+        android:textSize="20sp" />
 
 </LinearLayout>
