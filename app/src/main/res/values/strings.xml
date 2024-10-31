@@ -1,8 +1,13 @@
 <resources>
     <string name="app_name">AndroidLabs</string>
-    <string name="EditTextHint">Type Here</string>
+    <string name="textviewtext">Name:</string>
+    <string name="textviewtext2">Fill_me</string>
+    <string name="textviewtext3">Height:</string>
+    <string name="textviewtext4">Mass:</string>
     <string name="SwitchText">Urgent</string>
     <string name="ButtonText">Add</string>
     <string name="ToDoText">Sample To-Do Item</string>
     <string name="imageviewdescription">Cat image</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
