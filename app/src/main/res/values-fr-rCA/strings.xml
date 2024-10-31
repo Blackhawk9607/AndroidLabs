@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AndroidLabs</string>
-    <string name="EditTextHint">Tapez ici</string>
+    <string name="textviewtext">Nom :</string>
+    <string name="textviewtext2">Remplir_moi</string>
+    <string name="textviewtext3">Taille :</string>
+    <string name="textviewtext4">Masse :</string>
     <string name="SwitchText">Urgent!</string>
     <string name="ButtonText">Ajouter</string>
     <string name="ToDoText">Exemple de tâche à faire</string>
     <string name="imageviewdescription">image de chat</string>
+    <string name="hello_blank_fragment">Bonjour fragment vide</string>
+
 </resources>

@@ -1,128 +1,115 @@
 package com.example.androidlabs;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.view.View;
+import android.widget.ListView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
-import org.json.JSONException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ImageView imageView;
-    private ProgressBar progressBar;
-    private ExecutorService executorService;
-    private Handler mainHandler;
+    private static final String TAG = "MainActivity";
+    private final ArrayList<StarWarsCharacter> characterList = new ArrayList<>();
+    private CharacterAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        imageView = findViewById(R.id.imageView);
-        progressBar = findViewById(R.id.progressBar);
+        ListView listView = findViewById(R.id.characterListView);
+        adapter = new CharacterAdapter(this, characterList);
+        listView.setAdapter(adapter);
 
+        fetchStarWarsData();
 
-        executorService = Executors.newSingleThreadExecutor();
-        mainHandler = new Handler(Looper.getMainLooper());
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            StarWarsCharacter character = characterList.get(position);
+            Bundle bundle = new Bundle();
+            bundle.putString("name", character.getName());
+            bundle.putString("height", character.getHeight());
+            bundle.putString("mass", character.getMass());
 
+            View frameLayout = findViewById(R.id.detailsFrameLayout);
 
-        loadCatImages();
-    }
-
-    private void loadCatImages() {
-        executorService.execute(() -> {
-            while (!isFinishing()) {
-                try {
-                    Bitmap bitmap = fetchCatImage();
-
-
-                    for (int i = 0; i <= 100; i++) {
-                        final int progress = i;
-
-                        mainHandler.post(() -> progressBar.setProgress(progress));
-                    }
-
-
-                    mainHandler.post(() -> {
-                        imageView.setImageBitmap(bitmap);
-                        progressBar.setProgress(0);
-                    });
-
-                } catch (Exception e) {
-                    Log.e("MainActivity", "Error in image loading task", e);
-                }
+            if (frameLayout == null) { // Phone
+                Intent intent = new Intent(MainActivity.this, EmptyActivity.class);
+                intent.putExtras(bundle);
+                startActivity(intent);
+            } else { // Tablet
+                DetailsFragment fragment = new DetailsFragment();
+                fragment.setArguments(bundle);
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.detailsFrameLayout, fragment);
+                transaction.commit();
             }
         });
     }
 
-    private Bitmap fetchCatImage() throws Exception {
-        String imageId = getString();
-        String imageUrl = "https://cataas.com/cat/" + imageId;
-        File imageFile = new File(getCacheDir(), imageId + ".jpg");
+    private void fetchStarWarsData() {
+        new FetchStarWarsData(this).execute("https://swapi.dev/api/people/?format=json");
+    }
 
+    private static class FetchStarWarsData extends AsyncTask<String, Void, ArrayList<StarWarsCharacter>> {
+        private final WeakReference<MainActivity> activityReference;
 
-        if (imageFile.exists()) {
-            return BitmapFactory.decodeFile(imageFile.getAbsolutePath());
-        } else {
-            return downloadImage(imageUrl, imageFile);
+        FetchStarWarsData(MainActivity activity) {
+            activityReference = new WeakReference<>(activity);
         }
-    }
 
-    @NonNull
-    private static String getString() throws IOException, JSONException {
-        URL url = new URL("https://cataas.com/cat?json=true");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.connect();
+        @Override
+        protected ArrayList<StarWarsCharacter> doInBackground(String... urls) {
+            ArrayList<StarWarsCharacter> fetchedCharacters = new ArrayList<>();
+            try {
+                URL url = new URL(urls[0]);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
-        InputStream inputStream = connection.getInputStream();
-        StringBuilder jsonBuilder = new StringBuilder();
-        int data = inputStream.read();
-        while (data != -1) {
-            jsonBuilder.append((char) data);
-            data = inputStream.read();
+                StringBuilder json = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    json.append(line);
+                }
+
+                JSONObject jsonObject = new JSONObject(json.toString());
+                JSONArray results = jsonObject.getJSONArray("results");
+
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject characterObject = results.getJSONObject(i);
+                    String name = characterObject.getString("name");
+                    String height = characterObject.getString("height");
+                    String mass = characterObject.getString("mass");
+
+                    fetchedCharacters.add(new StarWarsCharacter(name, height, mass));
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error fetching data", e);
+            }
+            return fetchedCharacters;
         }
-        inputStream.close();
 
-        JSONObject jsonObject = new JSONObject(jsonBuilder.toString());
-        return jsonObject.getString("id");
-    }
-
-    private Bitmap downloadImage(String imageUrl, File imageFile) throws Exception {
-        HttpURLConnection imageConnection = (HttpURLConnection) new URL(imageUrl).openConnection();
-        imageConnection.connect();
-
-        InputStream input = imageConnection.getInputStream();
-        Bitmap bitmap = BitmapFactory.decodeStream(input);
-        FileOutputStream output = new FileOutputStream(imageFile);
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
-        output.close();
-
-        return bitmap;
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (executorService != null) {
-            executorService.shutdown();
+        @Override
+        protected void onPostExecute(ArrayList<StarWarsCharacter> fetchedCharacters) {
+            MainActivity activity = activityReference.get();
+            if (activity != null && !activity.isFinishing()) {
+                activity.characterList.addAll(fetchedCharacters);
+                activity.adapter.notifyDataSetChanged();
+            }
         }
     }
 }
