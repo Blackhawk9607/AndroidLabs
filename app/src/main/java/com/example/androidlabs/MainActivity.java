@@ -9,7 +9,6 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
@@ -31,64 +30,76 @@ public class MainActivity extends AppCompatActivity {
     private ExecutorService executorService;
     private Handler mainHandler;
 
+    private static final String TAG = "MainActivity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d(TAG, "onCreate: Initializing views and services");
         imageView = findViewById(R.id.imageView);
         progressBar = findViewById(R.id.progressBar);
-
 
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
 
-
+        // Start loading cat images
+        Log.d(TAG, "onCreate: Starting image loading task");
         loadCatImages();
     }
 
     private void loadCatImages() {
-        executorService.execute(() -> {
-            while (!isFinishing()) {
+        executorService.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    Bitmap bitmap = fetchCatImage();
+                    Log.d(TAG, "loadCatImages: Fetching cat image ID");
+                    String imageId = fetchCatImageId();
+                    File imageFile = new File(getCacheDir(), imageId + ".jpg");
+                    Bitmap bitmap;
 
-
-                    for (int i = 0; i <= 100; i++) {
-                        final int progress = i;
-
-                        mainHandler.post(() -> progressBar.setProgress(progress));
+                    // Check if image already exists in cache
+                    if (imageFile.exists()) {
+                        Log.d(TAG, "loadCatImages: Image found in cache");
+                        bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
+                    } else {
+                        String imageUrl = "https://cataas.com/cat/" + imageId;
+                        Log.d(TAG, "loadCatImages: Image not in cache, downloading from URL: " + imageUrl);
+                        bitmap = downloadImage(imageUrl, imageFile);
                     }
 
+                    // Slow and smooth progress update
+                    for (int i = 0; i <= 100; i += 5) { // Increase step for smoother animation
+                        final int progress = i;
+                        mainHandler.post(() -> {
+                            Log.d(TAG, "loadCatImages: Updating progress to " + progress);
+                            progressBar.setProgress(progress);
+                        });
+                        Thread.sleep(150); // Slower progress update, 150ms delay between steps
+                    }
 
+                    // Set image on the ImageView
                     mainHandler.post(() -> {
+                        Log.d(TAG, "loadCatImages: Setting image on ImageView");
                         imageView.setImageBitmap(bitmap);
-                        progressBar.setProgress(0);
                     });
 
+                    // Wait for a short period before loading the next image
+                    Thread.sleep(2000); // Pause for 2 seconds before loading the next image
+
                 } catch (Exception e) {
-                    Log.e("MainActivity", "Error in image loading task", e);
+                    Log.e(TAG, "Error in image loading task", e);
+                    break; // Exit the loop if there's an error
                 }
             }
         });
     }
 
-    private Bitmap fetchCatImage() throws Exception {
-        String imageId = getString();
-        String imageUrl = "https://cataas.com/cat/" + imageId;
-        File imageFile = new File(getCacheDir(), imageId + ".jpg");
 
-
-        if (imageFile.exists()) {
-            return BitmapFactory.decodeFile(imageFile.getAbsolutePath());
-        } else {
-            return downloadImage(imageUrl, imageFile);
-        }
-    }
-
-    @NonNull
-    private static String getString() throws IOException, JSONException {
+    private String fetchCatImageId() throws IOException, JSONException {
         URL url = new URL("https://cataas.com/cat?json=true");
+        Log.d(TAG, "fetchCatImageId: Connecting to " + url);
+
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.connect();
 
@@ -101,28 +112,46 @@ public class MainActivity extends AppCompatActivity {
         }
         inputStream.close();
 
-        JSONObject jsonObject = new JSONObject(jsonBuilder.toString());
-        return jsonObject.getString("id");
+        String jsonResponse = jsonBuilder.toString();
+        Log.d(TAG, "fetchCatImageId: JSON response - " + jsonResponse);
+
+        JSONObject jsonObject = new JSONObject(jsonResponse);
+
+        // Use "_id" instead of "id" as per the JSON structure in the logs
+        String imageId = jsonObject.optString("_id", null);
+        if (!imageId.isEmpty()) {
+            Log.d(TAG, "fetchCatImageId: Fetched image ID - " + imageId);
+            return imageId;
+        } else {
+            Log.e(TAG, "fetchCatImageId: No valid ID found in the JSON response");
+            throw new JSONException("No valid ID found in JSON response");
+        }
     }
 
     private Bitmap downloadImage(String imageUrl, File imageFile) throws Exception {
+        Log.d(TAG, "downloadImage: Starting download from " + imageUrl);
+
         HttpURLConnection imageConnection = (HttpURLConnection) new URL(imageUrl).openConnection();
         imageConnection.connect();
 
         InputStream input = imageConnection.getInputStream();
         Bitmap bitmap = BitmapFactory.decodeStream(input);
+
+        Log.d(TAG, "downloadImage: Download completed, saving to cache");
+
+        // Save bitmap to file
         FileOutputStream output = new FileOutputStream(imageFile);
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
         output.close();
 
+        Log.d(TAG, "downloadImage: Image saved to cache");
         return bitmap;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (executorService != null) {
-            executorService.shutdown();
-        }
+        Log.d(TAG, "onDestroy: Shutting down ExecutorService");
+        executorService.shutdownNow(); // Shutdown ExecutorService on activity destroy
     }
 }
