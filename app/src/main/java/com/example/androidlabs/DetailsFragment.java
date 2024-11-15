@@ -27,21 +27,6 @@ public class DetailsFragment extends Fragment {
         TextView massTextView = view.findViewById(R.id.massTextView);
 
         if (getArguments() != null) {
-            Log.d(TAG, "Arguments received");
-            String name = getArguments().getString("name", "Unknown");
-            String height = getArguments().getString("height", "Unknown");
-            String mass = getArguments().getString("mass", "Unknown");
-
-            nameTextView.setText(name);
-            heightTextView.setText(height);
-            massTextView.setText(mass);
-
-            Log.d(TAG, "Character details set - Name: " + name + ", Height: " + height + ", Mass: " + mass);
-        } else {
-            Log.w(TAG, "No arguments received");
-            nameTextView.setText("Unknown");
-            heightTextView.setText("Unknown");
-            massTextView.setText("Unknown");
         }
 
         return view;
