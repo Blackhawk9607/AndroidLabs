@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:title="@string/HomeText"
+        android:icon="@android:drawable/ic_menu_view" />
+
+    <!-- Dad Joke item -->
+    <item
+        android:id="@+id/nav_dad_joke"
+        android:title="@string/dadjoketext"
+        android:icon="@android:drawable/ic_menu_info_details" />
+
+    <!-- Exit item -->
+    <item
+        android:id="@+id/nav_exit"
+        android:title="@string/exittext"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel" />
+</menu>

@@ -3,141 +3,87 @@ package com.example.androidlabs;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.ListView;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.drawerlayout.widget.DrawerLayout;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.android.material.navigation.NavigationView;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
-    private final ArrayList<StarWarsCharacter> characterList = new ArrayList<>();
-    private CharacterAdapter adapter;
-    private ExecutorService executorService;  // For managing background tasks
+    private DrawerLayout drawerLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "onCreate: Activity created");
+        Log.d(TAG, "onCreate: MainActivity started");
 
-        ListView listView = findViewById(R.id.characterListView);
-        adapter = new CharacterAdapter(this, characterList);
-        listView.setAdapter(adapter);
+        // Set up the Toolbar
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        Log.d(TAG, "onCreate: Toolbar initialized");
 
-        // Initialize the executor service
-        executorService = Executors.newSingleThreadExecutor();
+        // Set up the Navigation Drawer
+        drawerLayout = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+        Log.d(TAG, "onCreate: Navigation Drawer set up");
 
-        // Fetch data
-        fetchStarWarsData();
-
-        // Handle item clicks
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            StarWarsCharacter character = characterList.get(position);
-            Log.d(TAG, "onItemClick: Selected character - " + character.getName());
-            Bundle bundle = new Bundle();
-            bundle.putString("name", character.getName());
-            bundle.putString("height", character.getHeight());
-            bundle.putString("mass", character.getMass());
-
-            View frameLayout = findViewById(R.id.detailsFrameLayout);
-
-            if (frameLayout == null) { // Phone
-                Intent intent = new Intent(MainActivity.this, EmptyActivity.class);
-                intent.putExtras(bundle);
-                Log.d(TAG, "onItemClick: Starting EmptyActivity with character data");
-                startActivity(intent);
-            } else { // Tablet
-                DetailsFragment fragment = new DetailsFragment();
-                fragment.setArguments(bundle);
-                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                transaction.replace(R.id.detailsFrameLayout, fragment);
-                transaction.commit();
-                Log.d(TAG, "onItemClick: Displaying character details in fragment");
-            }
-        });
-    }
-
-    private void fetchStarWarsData() {
-        Log.d(TAG, "fetchStarWarsData: Starting data fetch task.");
-        executorService.submit(() -> {
-            ArrayList<StarWarsCharacter> fetchedCharacters = new ArrayList<>();
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-
-            try {
-                URL url = new URL("https://swapi.dev/api/people/?format=json");
-                connection = (HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(5000); // Set a timeout
-                connection.setReadTimeout(5000);
-                connection.setRequestMethod("GET");
-
-                // Check if connection is successful
-                if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                    reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                    StringBuilder json = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        json.append(line);
-                    }
-
-                    JSONObject jsonObject = new JSONObject(json.toString());
-                    JSONArray results = jsonObject.getJSONArray("results");
-
-                    for (int i = 0; i < results.length(); i++) {
-                        JSONObject characterObject = results.getJSONObject(i);
-                        String name = characterObject.getString("name");
-                        String height = characterObject.getString("height");
-                        String mass = characterObject.getString("mass");
-
-                        fetchedCharacters.add(new StarWarsCharacter(name, height, mass));
-                    }
-
-                    Log.d(TAG, "fetchStarWarsData: Data fetch successful. " + fetchedCharacters.size() + " characters fetched.");
-                } else {
-                    Log.e(TAG, "fetchStarWarsData: Server returned: " + connection.getResponseCode());
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "fetchStarWarsData: Error fetching data", e);
-            } finally {
-                // Close resources
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (Exception e) {
-                        Log.e(TAG, "fetchStarWarsData: Error closing reader", e);
-                    }
-                }
-                if (connection != null) {
-                    connection.disconnect();
-                }
-            }
-
-            // Update UI on the main thread
-            runOnUiThread(() -> {
-                characterList.addAll(fetchedCharacters);
-                adapter.notifyDataSetChanged();
-                Log.d(TAG, "fetchStarWarsData: Adapter updated with fetched characters.");
-            });
-        });
+        // Add toggle button for opening/closing the drawer
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+        Log.d(TAG, "onCreate: Drawer toggle added");
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executorService.shutdown();  // Clean up the executor service
-        Log.d(TAG, "onDestroy: Executor service shut down.");
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the toolbar menu
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        Log.d(TAG, "onCreateOptionsMenu: Menu inflated");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        // Handle toolbar menu item clicks
+        int id = item.getItemId();
+        if (id == R.id.item1) {
+            Toast.makeText(this, "You clicked on item 1", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "onOptionsItemSelected: Item 1 clicked");
+            return true;
+        } else if (id == R.id.item2) {
+            Toast.makeText(this, "You clicked on item 2", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "onOptionsItemSelected: Item 2 clicked");
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation drawer item clicks
+        int id = item.getItemId();
+        if (id == R.id.nav_home) {
+            Log.d(TAG, "onNavigationItemSelected: Home clicked");
+            Toast.makeText(this, "Home selected", Toast.LENGTH_SHORT).show();
+        } else if (id == R.id.nav_dad_joke) {
+            Log.d(TAG, "onNavigationItemSelected: Dad Joke clicked");
+            startActivity(new Intent(this, DadJokeActivity.class));
+        } else if (id == R.id.nav_exit) {
+            Log.d(TAG, "onNavigationItemSelected: Exit clicked");
+            finishAffinity();
+        }
+        drawerLayout.closeDrawers(); // Close the drawer after selection
+        Log.d(TAG, "onNavigationItemSelected: Drawer closed");
+        return true;
     }
 }
